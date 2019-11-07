@@ -1,0 +1,43 @@
+{
+  "name": "@mtti/api-tools",
+  "version": "0.1.0",
+  "description": "Utilities for implementing APIs",
+  "repository": "github:mtti/api-tools",
+  "author": "Matti Hiltunen",
+  "license": "Apache-2.0",
+  "private": true,
+  "engines": {
+    "node": ">=10.15.0"
+  },
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "tsc",
+    "jest": "jest --config ./jest.config.json",
+    "lint": "eslint 'src/**/*.ts'",
+    "lint:fix": "eslint --fix 'src/**/*.ts'",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run test",
+    "setup": "npm install",
+    "test": "npm run lint && npm run jest",
+    "test:docker": "docker build -f ./Dockerfile-test -t ts-test . && docker run --rm -it ts-test",
+    "tsc": "tsc",
+    "watch": "chokidar --initial -c \"npm run build\" \"src/**/*.ts\""
+  },
+  "files": [
+    "lib",
+    "!lib/**/*.spec.*"
+  ],
+  "devDependencies": {
+    "@mtti/eslint-config-typescript": "1.0.0",
+    "@types/jest": "24.0.22",
+    "@types/node": "^12.12.6",
+    "@typescript-eslint/eslint-plugin": "2.6.1",
+    "@typescript-eslint/parser": "2.6.1",
+    "chokidar-cli": "2.1.0",
+    "eslint": "6.6.0",
+    "eslint-plugin-import": "2.18.2",
+    "jest": "24.9.0",
+    "ts-jest": "24.1.0",
+    "typescript": "3.7.2"
+  }
+}
