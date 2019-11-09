@@ -5,15 +5,12 @@ export type JsonRequestHandler = (
   res: express.Response,
 ) => Promise<object>;
 
-export function jsonRequestHandler(
+export function jsonResponse(
   cb: JsonRequestHandler,
 ): express.RequestHandler {
   return async (req, res, next): Promise<void> => {
     try {
-      const data = await cb(req, res);
-      res.json({
-        data,
-      });
+      res.json(await cb(req, res));
     } catch (err) {
       next(err);
     }

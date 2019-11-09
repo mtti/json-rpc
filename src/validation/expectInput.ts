@@ -4,16 +4,19 @@ import { InvalidRequestBodyError } from '../errors/InvalidRequestBodyError';
 import { InputEnvelope } from '../json-api/InputEnvelope';
 import { wrapInputSchema } from '../json-api/wrapInputSchema';
 
-export type ExpectInputFunc = <T extends Attributes>(
+/**
+ * Expect an input document wrapped in a JSON:API envelope.
+ */
+export type ExpectInputFunc<T extends Attributes> = (
   data: unknown,
 ) => T;
 
-export const expectInput = (
+export const expectInput = <T extends Attributes>(
   ajv: Ajv,
   attributeSchema: object,
-): ExpectInputFunc => {
+): ExpectInputFunc<T> => {
   const schema = wrapInputSchema(attributeSchema);
-  return <T extends Attributes>(
+  return (
     input: unknown,
   ): T => {
     if (!ajv.validate(schema, input)) {
