@@ -9,13 +9,16 @@ import { RpcError } from './RpcError';
 import { RpcRequest } from './RpcRequest';
 import requestSchema from './request.schema.json';
 
-export type RpcMethods = {
-  [key: string]: RpcHandlerCtor<unknown>;
+export type RpcMethods<Sess> = {
+  [key: string]: RpcHandlerCtor<Sess, unknown>;
 }
 
-export const service = (
+export type GetSessionFunc<Sess> = (req: express.Request) => Promise<Sess>;
+
+export const service = <Sess>(
   ajv: Ajv,
-  methods: RpcMethods,
+  getSession: GetSessionFunc<Sess>,
+  methods: RpcMethods<Sess>,
 ): express.RequestHandler => {
   const handlers = fromEntries(Object
     .entries(methods)
@@ -39,8 +42,10 @@ export const service = (
         throw new MethodNotFound();
       }
 
+      const session = await getSession(req);
+
       if (request.id) {
-        const result = await handler(request.params);
+        const result = await handler(session, request.params);
         res.json({
           jsonrpc: '2.0',
           result,
@@ -50,7 +55,7 @@ export const service = (
       }
 
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      setImmediate(() => handler(request.params));
+      setImmediate(() => handler(session, request.params));
       res.status(204).send();
     } catch (err) {
       let error: RpcError;

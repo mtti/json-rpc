@@ -5,47 +5,53 @@ import { ServerError } from '../errors/ServerError';
 /**
  * RPC method callback.
  */
-export type RpcMethod<Arg, Ret> = (args: Arg) => Promise<Ret>;
+export type RpcMethod<Sess, Params, Ret> = (
+  session: Sess,
+  params: Params,
+) => Promise<Ret>;
 
 /**
  * Wrapped RPC method callback.
  */
-export type RpcHandler<Result> = (params: unknown) => Promise<Result>;
+export type RpcHandler<Sess, Result> = (
+  session: Sess,
+  params: unknown,
+) => Promise<Result>;
 
 /**
  * Intermediate RPC method wrapper used to inject service-level dependencies.
  */
-export type RpcHandlerCtor<Result> = (
+export type RpcHandlerCtor<Sess, Result> = (
   ajv: Ajv,
-) => RpcHandler<Result>;
+) => RpcHandler<Sess, Result>;
 
 /**
  * The outermost RPC method wrapper.
  */
-export type MethodFunc = <Params, Result>(
+export type MethodFunc = <Sess, Params, Result>(
   paramSchema: string|object|null,
   resultSchema: string|object|null,
-  cb: RpcMethod<Params, Result>,
-) => RpcHandlerCtor<Result>;
+  cb: RpcMethod<Sess, Params, Result>,
+) => RpcHandlerCtor<Sess, Result>;
 
 /**
  * Wrap an RPC method
  * @param cb
  */
-export const method: MethodFunc = <Params, Result>(
+export const method: MethodFunc = <Sess, Params, Result>(
   paramSchema: string|object|null,
   resultSchema: string|object|null,
-  cb: RpcMethod<Params, Result>,
-): RpcHandlerCtor<Result> => {
+  cb: RpcMethod<Sess, Params, Result>,
+): RpcHandlerCtor<Sess, Result> => {
   return (
     ajv: Ajv,
-  ): RpcHandler<Result> => {
-    return async (params: unknown): Promise<Result> => {
+  ): RpcHandler<Sess, Result> => {
+    return async (session: Sess, params: unknown): Promise<Result> => {
       if (paramSchema && !ajv.validate(paramSchema, params)) {
         throw new InvalidParams();
       }
 
-      const result = await cb(params as Params);
+      const result = await cb(session, params as Params);
 
       if (resultSchema && !ajv.validate(resultSchema, result)) {
         throw new ServerError();
