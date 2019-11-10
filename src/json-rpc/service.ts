@@ -1,7 +1,7 @@
 import { Ajv } from 'ajv';
 import express from 'express';
 import { fromEntries } from '@mtti/funcs';
-import { InvalidRequestError } from '../errors/InvalidRequestError';
+import { InvalidRequest } from '../errors/InvalidRequest';
 import { JsonRpcError } from '../errors/JsonRpcError';
 import { MethodNotFound } from '../errors/MethodNotFound';
 import { RpcHandlerCtor } from './method';
@@ -32,7 +32,7 @@ export const service = <Sess>(
 
     try {
       if (!ajv.validate(requestSchema, req.body)) {
-        throw new InvalidRequestError(ajv.errors);
+        throw new InvalidRequest(ajv.errors);
       }
       const request = req.body as RpcRequest;
       id = request.id || null;

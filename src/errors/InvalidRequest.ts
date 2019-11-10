@@ -2,7 +2,7 @@ import Ajv from 'ajv';
 import { RpcError } from '../json-rpc/RpcError';
 import { JsonRpcError } from './JsonRpcError';
 
-export class InvalidRequestError extends JsonRpcError {
+export class InvalidRequest extends JsonRpcError {
   private _errors: Ajv.ErrorObject[];
 
   constructor(errors?: Ajv.ErrorObject[]|null, data?: object) {
