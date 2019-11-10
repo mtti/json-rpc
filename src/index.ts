@@ -8,5 +8,3 @@ export * from './express/httpTransport';
 export * from './json-rpc/method';
 export * from './json-rpc/RpcRequest';
 export * from './json-rpc/Service';
-export * from './request-handler/JsonRequestHandler';
-export * from './request-handler/promisifyMiddleware';
