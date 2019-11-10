@@ -1,7 +1,7 @@
 import { RpcError } from '../json-rpc/RpcError';
 
 /**
- * Base class for RESTful errors
+ * Base class for JSON-RPC errors.
  */
 export class JsonRpcError extends Error {
   private _code: number;

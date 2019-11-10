@@ -1,40 +1,39 @@
 import { Ajv } from 'ajv';
-import express from 'express';
 import { fromEntries } from '@mtti/funcs';
-import { InvalidRequest } from '../errors/InvalidRequest';
 import { JsonRpcError } from '../errors/JsonRpcError';
 import { MethodNotFound } from '../errors/MethodNotFound';
 import { RpcHandlerCtor } from './method';
 import { RpcError } from './RpcError';
-import { RpcRequest } from './RpcRequest';
-import requestSchema from './request.schema.json';
+import { RpcErrorResponse } from './RpcErrorResponse';
+import { expectRequest as expectRequestCtor } from './RpcRequest';
+import { RpcResponse } from './RpcResponse';
 
 export type RpcMethods<Sess> = {
   [key: string]: RpcHandlerCtor<Sess, unknown>;
 }
 
-export type GetSessionFunc<Sess> = (req: express.Request) => Promise<Sess>;
+export type Service<Sess> = (
+  session: Sess,
+  request: object,
+) => Promise<null|RpcResponse|RpcErrorResponse>;
 
 export const service = <Sess>(
   ajv: Ajv,
-  getSession: GetSessionFunc<Sess>,
   methods: RpcMethods<Sess>,
-): express.RequestHandler => {
+): Service<Sess> => {
   const handlers = fromEntries(Object
     .entries(methods)
     .map(([key, ctor]) => [key, ctor(ajv)]));
+  const expectRequest = expectRequestCtor(ajv);
 
   return async (
-    req: express.Request,
-    res: express.Response,
-  ): Promise<void> => {
+    session: Sess,
+    data: object,
+  ): Promise<null|RpcResponse|RpcErrorResponse> => {
     let id: number|null = null;
 
     try {
-      if (!ajv.validate(requestSchema, req.body)) {
-        throw new InvalidRequest(ajv.errors);
-      }
-      const request = req.body as RpcRequest;
+      const request = expectRequest(data);
       id = request.id || null;
 
       const handler = handlers[request.method];
@@ -42,23 +41,22 @@ export const service = <Sess>(
         throw new MethodNotFound();
       }
 
-      const session = await getSession(req);
-
-      if (request.id) {
-        const result = await handler(session, request.params);
-        res.json({
-          jsonrpc: '2.0',
-          result,
-          id: request.id,
-        });
-        return;
+      // Don't wait for the handler to process notifications
+      if (!request.id) {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        setImmediate(() => handler(session, request.params));
+        return null;
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      setImmediate(() => handler(session, request.params));
-      res.status(204).send();
+      const result = await handler(session, request.params);
+      return {
+        jsonrpc: '2.0',
+        result,
+        id: request.id,
+      };
     } catch (err) {
       let error: RpcError;
+
       if (err instanceof JsonRpcError) {
         error = err.toJsonRpc();
       } else {
@@ -68,11 +66,15 @@ export const service = <Sess>(
         };
       }
 
-      res.json({
+      const response: RpcErrorResponse = {
         jsonrpc: '2.0',
         error,
-        id,
-      });
+      };
+      if (id) {
+        response.id = id;
+      }
+
+      return response;
     }
   };
 };
