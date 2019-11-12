@@ -6,5 +6,6 @@ export * from './errors/ServerError';
 export * from './express/GetSessionFunc';
 export * from './express/httpTransport';
 export * from './json-rpc/method';
+export * from './json-rpc/RpcMethod';
 export * from './json-rpc/RpcRequest';
 export * from './json-rpc/Service';

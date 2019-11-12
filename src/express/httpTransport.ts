@@ -1,4 +1,6 @@
+import { parse as parseContentType } from 'content-type';
 import express from 'express';
+import getRawBody from 'raw-body';
 import { Service } from '../json-rpc/Service';
 import { GetSessionFunc } from './GetSessionFunc';
 
@@ -9,15 +11,43 @@ export const httpTransport = <Sess>(
   return async (
     req: express.Request,
     res: express.Response,
+    next: express.NextFunction,
   ): Promise<void> => {
-    const session = await getSession(req);
-    const result = await service(session, req.body);
+    try {
+      // Content negotiation
+      if (!req.is('application/json')) {
+        res.status(415).send('Unsupported Media Type');
+        return;
+      }
+      if (!req.accepts('application/json')) {
+        res.status(406).send('Not Acceptable');
+        return;
+      }
 
-    if (!result) {
-      res.status(204).send();
-      return;
+      // Assume request body is UTF-8 if the caller doesn't know what
+      // they're doing
+      const charset = parseContentType(req).parameters.charset || 'utf-8';
+      const body = await getRawBody(req, {
+        length: req.headers['content-length'],
+        limit: '1kb',
+        encoding: charset,
+      });
+
+      const session = await getSession(req);
+      const result = await service(session, body);
+
+      if (!result) {
+        res.status(204).send();
+        return;
+      }
+
+      res.json(result);
+    } catch (err) {
+      if (err.status) {
+        res.status(err.status).send();
+        return;
+      }
+      next(err);
     }
-
-    res.json(result);
   };
 };
