@@ -1,80 +1,73 @@
 import { Ajv } from 'ajv';
 import { fromEntries } from '@mtti/funcs';
-import { JsonRpcError } from '../errors/JsonRpcError';
-import { MethodNotFound } from '../errors/MethodNotFound';
-import { RpcHandlerCtor } from './method';
-import { RpcError } from './RpcError';
-import { RpcErrorResponse } from './RpcErrorResponse';
+import { InvalidRequest } from '../errors/InvalidRequest';
+import { ParseError } from '../errors/ParseError';
+import { handleRequest as handleRequestCtor } from './handleRequest';
+import { RpcHandlerMap } from './RpcHandler';
+import { RpcMethods } from './RpcMethod';
+import { RpcErrorResponse, rpcErrorResponse } from './RpcErrorResponse';
 import { expectRequest as expectRequestCtor } from './RpcRequest';
 import { RpcResponse } from './RpcResponse';
 
-export type RpcMethods<Sess> = {
-  [key: string]: RpcHandlerCtor<Sess, unknown>;
-}
-
 export type Service<Sess> = (
   session: Sess,
-  request: object,
-) => Promise<null|RpcResponse|RpcErrorResponse>;
+  request: unknown,
+) => Promise<
+  null|RpcResponse|RpcErrorResponse|Array<RpcResponse|RpcErrorResponse>
+>;
 
 export const service = <Sess>(
   ajv: Ajv,
   methods: RpcMethods<Sess>,
 ): Service<Sess> => {
-  const handlers = fromEntries(Object
+  const expectRequest = expectRequestCtor(ajv);
+  const handlers: RpcHandlerMap<Sess> = fromEntries(Object
     .entries(methods)
     .map(([key, ctor]) => [key, ctor(ajv)]));
-  const expectRequest = expectRequestCtor(ajv);
+  const handleRequest = handleRequestCtor(
+    expectRequest,
+    handlers,
+  );
 
   return async (
     session: Sess,
-    data: object,
-  ): Promise<null|RpcResponse|RpcErrorResponse> => {
-    let id: number|null = null;
-
+    data: unknown,
+  ): Promise<
+    null|RpcResponse|RpcErrorResponse|Array<RpcResponse|RpcErrorResponse>
+  > => {
     try {
-      const request = expectRequest(data);
-      id = request.id || null;
+      let request: unknown;
 
-      const handler = handlers[request.method];
-      if (!handler) {
-        throw new MethodNotFound();
-      }
-
-      // Don't wait for the handler to process notifications
-      if (!request.id) {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        setImmediate(() => handler(session, request.params));
-        return null;
-      }
-
-      const result = await handler(session, request.params);
-      return {
-        jsonrpc: '2.0',
-        result,
-        id: request.id,
-      };
-    } catch (err) {
-      let error: RpcError;
-
-      if (err instanceof JsonRpcError) {
-        error = err.toJsonRpc();
+      if (typeof data === 'string') {
+        try {
+          request = JSON.parse(data);
+        } catch (err) {
+          throw new ParseError();
+        }
       } else {
-        error = {
-          code: -32000,
-          message: err.message,
-        };
+        request = data;
       }
 
-      const response: RpcErrorResponse = {
-        jsonrpc: '2.0',
-        error,
-      };
-      if (id) {
-        response.id = id;
+      if (Array.isArray(request)) {
+        if (request.length === 0) {
+          throw new InvalidRequest();
+        }
+
+        const result = (await Promise.all(
+          request
+            .map((req) => handleRequest(session, req)),
+        )).filter((response) => response !== null);
+
+        if (result.length === 0) {
+          return null;
+        }
+
+        return result as Array<RpcResponse|RpcErrorResponse>;
       }
 
-      return response;
+      return handleRequest(session, request);
+    } catch (err) {
+      return rpcErrorResponse(err);
     }
   };
 };

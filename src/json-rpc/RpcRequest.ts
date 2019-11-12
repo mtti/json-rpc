@@ -7,9 +7,9 @@ export type RpcRequest = {
 
   method: string;
 
-  params?: object;
+  params?: object|unknown[];
 
-  id?: number;
+  id?: number|string|null;
 };
 
 export type ExpectRequestFunc = (
@@ -24,6 +24,7 @@ export const expectRequest = (
     if (!validate(data)) {
       throw new InvalidRequest(ajv.errors);
     }
+
     return data as RpcRequest;
   };
 };

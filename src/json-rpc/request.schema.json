@@ -8,11 +8,18 @@
       "type": "string"
     },
     "params": {
-      "type": "object",
-      "additionalProperties": true
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": true
+        },
+        {
+          "type": "array"
+        }
+      ]
     },
     "id": {
-      "type": "integer"
+      "type": ["integer", "string", "null"]
     }
   },
   "required": ["jsonrpc", "method"],

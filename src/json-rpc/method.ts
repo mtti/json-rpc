@@ -1,29 +1,8 @@
 import { Ajv } from 'ajv';
 import { InvalidParams } from '../errors/InvalidParams';
 import { ServerError } from '../errors/ServerError';
-
-/**
- * RPC method callback.
- */
-export type RpcMethod<Sess, Params, Ret> = (
-  session: Sess,
-  params: Params,
-) => Promise<Ret>;
-
-/**
- * Wrapped RPC method callback.
- */
-export type RpcHandler<Sess, Result> = (
-  session: Sess,
-  params: unknown,
-) => Promise<Result>;
-
-/**
- * Intermediate RPC method wrapper used to inject service-level dependencies.
- */
-export type RpcHandlerCtor<Sess, Result> = (
-  ajv: Ajv,
-) => RpcHandler<Sess, Result>;
+import { RpcHandler, RpcHandlerCtor } from './RpcHandler';
+import { RpcMethod } from './RpcMethod';
 
 /**
  * The outermost RPC method wrapper.

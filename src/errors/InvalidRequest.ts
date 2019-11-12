@@ -16,8 +16,10 @@ export class InvalidRequest extends JsonRpcError {
       message: this.message,
     };
 
-    result.data = this.data || {};
-    (result.data as any).validationErrors = this._errors;
+    if (this._errors && this._errors.length > 0) {
+      result.data = this.data || {};
+      (result.data as any).validationErrors = this._errors;
+    }
 
     return result;
   }
