@@ -142,7 +142,9 @@ describe(service.name, () => {
         update: method<null, number[], void>(
           null,
           null,
-          async () => {},
+          async () => {
+            // Do nothing
+          },
         ),
         sum: method<null, number[], number>(
           null,
