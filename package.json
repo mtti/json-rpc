@@ -1,8 +1,8 @@
 {
-  "name": "@mtti/json-rpc-ts",
+  "name": "@mtti/json-rpc",
   "version": "0.1.0",
-  "description": "Utilities for implementing APIs",
-  "repository": "github:mtti/json-rpc-ts",
+  "description": "JSON-RPC 2.0 server library",
+  "repository": "github:mtti/json-rpc",
   "author": "Matti Hiltunen",
   "license": "Apache-2.0",
   "private": true,
