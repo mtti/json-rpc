@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/camelcase */
 
-import Ajv from 'ajv';
 import { method } from './method';
 import { Service, service } from './Service';
 
@@ -121,13 +120,10 @@ type NamedParams = {
 };
 
 describe(service.name, () => {
-  let ajv: Ajv.Ajv;
   let svc: Service<null>;
 
   beforeEach(() => {
-    ajv = new Ajv();
     svc = service<null>(
-      ajv,
       {
         subtract: method<null, [number, number], number>(
           null,

@@ -1,14 +1,17 @@
-import { Ajv } from 'ajv';
+import Ajv from 'ajv';
 import { fromEntries } from '@mtti/funcs';
 import { InvalidRequest } from '../errors/InvalidRequest';
 import { ParseError } from '../errors/ParseError';
 import { handleRequest as handleRequestCtor } from './handleRequest';
 import { RpcHandlerMap } from './RpcHandler';
-import { RpcMethods } from './RpcMethod';
+import { WrappedRpcMethods } from './RpcMethod';
 import { RpcErrorResponse, rpcErrorResponse } from './RpcErrorResponse';
 import { expectRequest as expectRequestCtor } from './RpcRequest';
 import { RpcResponse } from './RpcResponse';
 
+/**
+ * A transport-agnostic JSON-RPC 2.0 service.
+ */
 export type Service<Sess> = (
   session: Sess,
   request: unknown,
@@ -16,14 +19,22 @@ export type Service<Sess> = (
   null|RpcResponse|RpcErrorResponse|Array<RpcResponse|RpcErrorResponse>
 >;
 
+/**
+ * Initialize a JSON-RPC 2.0 service.
+ *
+ * @param methods
+ * @param ajv Optional AJV instance to use for request validation.
+ */
 export const service = <Sess>(
-  ajv: Ajv,
-  methods: RpcMethods<Sess>,
+  methods: WrappedRpcMethods<Sess>,
+  ajv?: Ajv.Ajv,
 ): Service<Sess> => {
-  const expectRequest = expectRequestCtor(ajv);
+  const realAjv: Ajv.Ajv = ajv || new Ajv();
+
+  const expectRequest = expectRequestCtor(realAjv);
   const handlers: RpcHandlerMap<Sess> = fromEntries(Object
     .entries(methods)
-    .map(([key, ctor]) => [key, ctor(ajv)]));
+    .map(([key, ctor]) => [key, ctor(realAjv)]));
   const handleRequest = handleRequestCtor(
     expectRequest,
     handlers,

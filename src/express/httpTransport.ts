@@ -4,6 +4,14 @@ import getRawBody from 'raw-body';
 import { Service } from '../json-rpc/Service';
 import { GetSessionFunc } from './GetSessionFunc';
 
+/**
+ * Create a HTTP transport for a JSON-RPC service.
+ *
+ * @param service The JSON-RPC service to wrap.
+ * @param getSession A function which parses a user-defined session object from
+ *  an Express request object.
+ * @returns An Express request handler
+ */
 export const httpTransport = <Sess>(
   service: Service<Sess>,
   getSession: GetSessionFunc<Sess>,
