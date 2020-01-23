@@ -8,3 +8,4 @@ export * from './express/httpTransport';
 export * from './json-rpc/RpcMethodFunc';
 export * from './json-rpc/RpcRequest';
 export * from './json-rpc/Service';
+export * from './json-rpc/createService';
