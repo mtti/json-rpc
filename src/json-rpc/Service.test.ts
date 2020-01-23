@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/camelcase */
 
-import { method } from './method';
-import { Service, service } from './Service';
+import { createService } from './createService';
+import { Service } from './Service';
 
 type ServiceTest = {
   name: string;
@@ -119,43 +119,30 @@ type NamedParams = {
   subtrahend: number;
 };
 
-describe(service.name, () => {
+describe('Service', () => {
   let svc: Service<null>;
 
   beforeEach(() => {
-    svc = service<null>(
+    svc = createService<null>(
       {
-        subtract: method<null, [number, number], number>(
-          null,
-          null,
-          async (session, [a, b]) => {
-            return a - b;
-          },
+        subtract: async (session, [a, b]) => {
+          return a - b;
+        },
+
+        subtractNamed: async (_session, { minuend, subtrahend }) => {
+          return minuend - subtrahend;
+        },
+
+        update: async () => {
+          // Do nothing
+        },
+
+        sum: async (_session, numbers) => numbers.reduce(
+          (a: number, b: number) => a + b,
+          0,
         ),
-        subtractNamed: method<null, NamedParams, number>(
-          null,
-          null,
-          async (_session, { minuend, subtrahend }) => {
-            return minuend - subtrahend;
-          },
-        ),
-        update: method<null, number[], void>(
-          null,
-          null,
-          async () => {
-            // Do nothing
-          },
-        ),
-        sum: method<null, number[], number>(
-          null,
-          null,
-          async (_session, numbers) => numbers.reduce((a, b) => a + b, 0),
-        ),
-        get_data: method<null, unknown, [string, number]>(
-          null,
-          null,
-          async (_session, params) => ['hello', 5],
-        ),
+
+        get_data: async (_session, _params) => ['hello', 5],
       },
     );
   });

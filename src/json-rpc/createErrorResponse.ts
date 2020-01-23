@@ -1,15 +1,8 @@
 import { JsonRpcError } from '../errors/JsonRpcError';
 import { RpcError } from './RpcError';
+import { RpcErrorResponse } from './responses';
 
-export type RpcErrorResponse = {
-  jsonrpc: '2.0';
-
-  error: RpcError;
-
-  id: number|string|null;
-};
-
-export const rpcErrorResponse = (
+export const createErrorResponse = (
   err: unknown,
   id?: number|string|null,
 ): RpcErrorResponse => {
