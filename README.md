@@ -1,4 +1,4 @@
-[![Written in TypeScript](https://flat.badgen.net/badge/icon/TypeScript?icon=typescript&label)](http://www.typescriptlang.org/) <!-- [![npm](https://flat.badgen.net/npm/v/@mtti/json-rpc?icon=npm)](https://www.npmjs.com/package/@mtti/json-rpc) --> [![Travis](https://flat.badgen.net/travis/mtti/json-rpc?icon=travis)](https://travis-ci.org/mtti/json-rpc) [![License](https://flat.badgen.net/github/license/mtti/json-rpc)](https://github.com/mtti/json-rpc/blob/master/LICENSE)
+[![Written in TypeScript](https://flat.badgen.net/badge/icon/TypeScript?icon=typescript&label)](http://www.typescriptlang.org/) <!-- [![npm](https://flat.badgen.net/npm/v/@mtti/json-rpc?icon=npm)](https://www.npmjs.com/package/@mtti/json-rpc) --> [![License](https://flat.badgen.net/github/license/mtti/json-rpc)](https://github.com/mtti/json-rpc/blob/master/LICENSE)
 
 A JSON-RPC 2.0 server library written in TypeScript.
 
