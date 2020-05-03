@@ -5,7 +5,6 @@ A JSON-RPC 2.0 server library written in TypeScript.
 * Implemements [JSON-RPC 2.0](https://www.jsonrpc.org/specification) with tests for all the examples in the specification.
 * Separates transports from the RPC protocol.
 * Includes a HTTP transport for Express.
-* Allows validating method parameters and return values with JSON Schema to make sure you don't receive or send out garbage.
 
 ## Basic usage
 
