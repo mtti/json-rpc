@@ -12,7 +12,7 @@ A JSON-RPC 2.0 server library written in TypeScript.
 The `service` function receives a dictionary of wrapped RPC method handlers and returns a top-level handler function of type `Session` which receives RPC requests.
 
 ```typescript
-import { service, method } from '@mtti/json-rpc';
+import { createService } from '@mtti/json-rpc';
 
 type MySession = {
     userId: number;
@@ -23,13 +23,13 @@ type MyParams = {
     b: number;
 };
 
-const myService = service<MySession>({
-    sum: method(null, null, async (session, params: MyParams): Promise<number> => {
+const myService = createService<MySession>({
+    sum: async (session, params: MyParams): Promise<number> => {
         // Check session to authorize this request, etc.
 
         const {a, b} = params;
         return a + b;
-    });
+    };
 });
 
 const mySession: MySession = { userId: 1234 };
@@ -47,13 +47,7 @@ const response = myService(mySession, myRequest);
 console.log(JSON.stringify(response));
 ```
 
-The generic type parameter on the `service` function is the type of the session object that is passed to the method handler function so that you can implement whatever kind of authorization you want.
-
-## JSON Schema validation
-
-The first two parameters of the `method` can receive a JSON Schema object or a JSON Schema ID for validation. The first parameter validates the method parameter before the handler function is called. The second parameter validates the response before it's returned to the caller.
-
-Use of schema ID's requires that you must pass an Ajv instance as the second parameter to `service()`.
+The generic type parameter on the `createService` function is the type of the session object that is passed to the method handler function so that you can implement whatever kind of authorization you want.
 
 ## HTTP transport
 
